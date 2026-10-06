@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COMM 1315 Schedule Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f6f8;
+      color: #1f2937;
+      margin: 0;
+      padding: 20px;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    header {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+    }
+    h1 { margin: 0 0 6px; font-size: 1.75rem; }
+    .sub { color: #64748b; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 18px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .card .value { font-size: 2rem; font-weight: 700; color: #111827; }
+    .card .label { font-size: .85rem; color: #6b7280; margin-top: 4px; }
+    .progress-block {
+      background: #fff;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .progress-bar {
+      height: 22px;
+      background: #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #22c55e;
+      transition: width .3s ease;
+    }
+    .progress-text { margin-top: 8px; font-weight: 600; color: #374151; }
+    section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+    }
+    h2 { margin-top: 0; font-size: 1.25rem; color: #111827; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    th { background: #f9fafb; font-weight: 600; color: #4b5563; }
+    tr:hover { background: #f9fafb; }
+    .week-header td { background: #f1f5f9; font-weight: 700; color: #475569; padding: 8px 12px; border-bottom: 1px solid #e5e7eb; }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    .outline { background: #fef3c7; color: #92400e; }
+    .speech { background: #dbeafe; color: #1e40af; }
+    .exam { background: #fee2e2; color: #991b1b; }
+    .noclass { background: #e5e7eb; color: #374151; }
+    .important { background: #ffedd5; color: #9a3412; }
+    .days { font-weight: 700; }
+    .overdue { color: #dc2626; }
+    .soon { color: #ea580c; }
+    .done td { text-decoration: line-through; color: #9ca3af; }
+    .calendar-wrap { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .month { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; }
+    .month-name { font-weight: 700; margin-bottom: 8px; color: #111827; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-day-h { text-align: center; font-size: .75rem; font-weight: 600; color: #6b7280; padding: 4px 0; }
+    .cal-cell { min-height: 70px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; background: #fff; font-size: .72rem; }
+    .cal-cell.empty { background: #f9fafb; }
+    .cal-date { font-weight: 700; color: #374151; margin-bottom: 2px; }
+    .cal-event { padding: 2px 4px; border-radius: 4px; margin-bottom: 2px; }
+    .filters { margin-bottom: 12px; }
+    .filters button {
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: .85rem;
+      margin-right: 6px;
+    }
+    .filters button.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+    .note { font-size: .85rem; color: #6b7280; margin-top: 12px; }
+    .actions { margin-top: 14px; }
+    .actions button {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: .85rem;
+      margin-right: 8px;
+    }
+    .actions button.secondary { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+    .source { font-size: .85rem; color: #6b7280; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .actions, .filters, .note { display: none; }
+      .wrap { max-width: none; }
+      section, header, .card, .progress-block { box-shadow: none; border: 1px solid #e5e7eb; }
+      tr:hover { background: transparent; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>COMM 1315 Schedule Dashboard</h1>
+      <div class="sub">Fall 2026 — Visual schedule, countdowns, and progress tracker</div>
+      <div class="sub" id="todayLine"></div>
+      <div class="actions">
+        <button onclick="window.print()">Print / Save as PDF</button>
+        <button class="secondary" onclick="downloadCSV()">Export CSV</button>
+        <button class="secondary" onclick="exportProgress()">Export Progress</button>
+        <button class="secondary" onclick="document.getElementById('importFile').click()">Import Progress</button>
+        <button class="secondary" onclick="copyShareLink()">Copy Share Link</button>
+        <button class="secondary" onclick="downloadShareableFile()">Download Shareable File</button>
+        <button class="secondary" onclick="resetProgress()">Reset</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importProgress(this)">
+      </div>
+    </header>
+
+    <div class="grid" id="summary" aria-live="polite" aria-atomic="false"></div>
+
+    <div class="progress-block">
+      <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar" aria-labelledby="progressText"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText" aria-live="polite"></div>
+    </div>
+
+    <section>
+      <h2>Assignments & Events</h2>
+      <div class="filters" id="filters"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Done</th>
+            <th>Date</th>
+            <th>Day</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Days Remaining</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="note">Check the box to mark an item complete. Progress saves in this browser; use Export/Import Progress to move it between devices or share it.</div>
+    </section>
+
+    <section>
+      <h2>Calendar View</h2>
+      <div class="calendar-wrap" id="calendar"></div>
+    </section>
+
+    <section>
+      <h2>Accuracy & Source</h2>
+      <p class="source">
+        Cross-referenced against <strong>FA26 COMM 1315 Schedule.pdf</strong>.<br>
+        22 events extracted from the October, November, and December 2026 calendar pages (class meetings on Tuesdays/Thursdays plus Sunday due dates).<br>
+        No-class days are listed but excluded from completion percentage.
+      </p>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'comm1315_progress_v1';
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    document.getElementById('todayLine').textContent = `Today: ${today.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
+
+    const events = [
+      { date:'2026-10-06', type:'Outline Work', category:'outline', desc:'CH 9 Outline Work' },
+      { date:'2026-10-08', type:'Outline Work', category:'outline', desc:'CH 11 Outline Work' },
+      { date:'2026-10-13', type:'Outline Work', category:'outline', desc:'CH 13 Outline Work' },
+      { date:'2026-10-15', type:'No Class', category:'noclass', desc:'No In-Person Class' },
+      { date:'2026-10-20', type:'Speech', category:'speech', desc:'Informative Speeches + Outline' },
+      { date:'2026-10-22', type:'Speech', category:'speech', desc:'Informative Speeches + Outline' },
+      { date:'2026-10-25', type:'Exam', category:'exam', desc:'Exam #1 Due 11:59 PM' },
+      { date:'2026-10-27', type:'Speech', category:'speech', desc:'CH 16 Introduce Impromptu Speech' },
+      { date:'2026-10-29', type:'No Class', category:'noclass', desc:'No In-Person Class' },
+      { date:'2026-11-03', type:'No Class', category:'noclass', desc:'No In-Person Class' },
+      { date:'2026-11-05', type:'Important', category:'important', desc:'No In-Person Class + Last Day to Drop' },
+      { date:'2026-11-08', type:'Speech', category:'speech', desc:'Impromptu Speech Video Due 11:59 PM' },
+      { date:'2026-11-10', type:'Speech', category:'speech', desc:'CH 14 Introduce Persuasive Speech' },
+      { date:'2026-11-12', type:'Speech', category:'speech', desc:'Persuasive Speech Work Day' },
+      { date:'2026-11-17', type:'Speech', category:'speech', desc:'CH 15 Persuasive Speech Work Day' },
+      { date:'2026-11-19', type:'Speech', category:'speech', desc:'Persuasive Speech Work Day' },
+      { date:'2026-11-24', type:'Speech', category:'speech', desc:'Persuasive Speech Work Day' },
+      { date:'2026-11-26', type:'No Class', category:'noclass', desc:'No In-Person Class' },
+      { date:'2026-12-01', type:'No Class', category:'noclass', desc:'No In-Person Class' },
+      { date:'2026-12-03', type:'No Class', category:'noclass', desc:'No In-Person Class' },
+      { date:'2026-12-06', type:'Exam', category:'exam', desc:'Persuasive Outline & Vid Exam #2 Due @ 11:59 PM' },
+      { date:'2026-12-10', type:'Important', category:'important', desc:'Last Day of Semester' }
+    ];
+
+    function loadHashState(){
+      if (location.hash.startsWith('#p=')) {
+        try { return JSON.parse(atob(decodeURIComponent(location.hash.slice(3)))); } catch(e){}
+      }
+      return null;
+    }
+    function saveCompleted(){
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(completed)); } catch(e){}
+      const encoded = encodeURIComponent(btoa(JSON.stringify(completed)));
+      const newHash = '#p=' + encoded;
+      try {
+        if (window.history && history.replaceState) {
+          history.replaceState(null, '', newHash);
+        } else {
+          location.hash = newHash;
+        }
+      } catch(e){ location.hash = newHash; }
+    }
+
+    let completed = loadHashState() || {};
+    try { completed = completed || JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e){}
+
+    const categories = {
+      outline: { label:'Outline Work', class:'outline' },
+      speech: { label:'Speech', class:'speech' },
+      exam: { label:'Exam', class:'exam' },
+      noclass: { label:'No Class', class:'noclass' },
+      important: { label:'Important', class:'important' }
+    };
+
+    function parseLocal(dateStr){
+      const [y, m, day] = dateStr.split('-').map(Number);
+      return new Date(y, m-1, day);
+    }
+    function dayName(dateStr){ return parseLocal(dateStr).toLocaleDateString('en-US',{weekday:'short'}); }
+    function daysUntil(dateStr){
+      const d = parseLocal(dateStr); d.setHours(0,0,0,0);
+      return Math.ceil((d - today) / (1000*60*60*24));
+    }
+    function fmtDays(n){
+      if (n < 0) return `<span class="days overdue">Overdue ${Math.abs(n)} day${Math.abs(n)===1?'':'s'}</span>`;
+      if (n === 0) return `<span class="days soon">Today</span>`;
+      if (n <= 3) return `<span class="days soon">${n} day${n===1?'':'s'} left</span>`;
+      return `<span class="days">${n} day${n===1?'':'s'} left</span>`;
+    }
+
+    let activeFilter = 'all';
+
+    function renderTable(){
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      let lastWeek = null;
+      const fmt = (d) => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      events.forEach((ev, idx) => {
+        if (activeFilter !== 'all' && ev.category !== activeFilter) return;
+        const d = parseLocal(ev.date);
+        const weekStart = new Date(d); weekStart.setDate(d.getDate() - d.getDay());
+        if (!lastWeek || weekStart.getTime() !== lastWeek.getTime()){
+          const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+          const wh = document.createElement('tr');
+          wh.className = 'week-header';
+          wh.innerHTML = `<td colspan="7">Week of ${fmt(weekStart)} – ${fmt(weekEnd)}</td>`;
+          tbody.appendChild(wh);
+          lastWeek = weekStart;
+        }
+        const days = daysUntil(ev.date);
+        const isDone = !!completed[idx];
+        const isGraded = ev.category !== 'noclass';
+        const tr = document.createElement('tr');
+        tr.className = isDone && isGraded ? 'done' : '';
+        const checkbox = isGraded ? `<input type="checkbox" data-idx="${idx}" aria-label="Mark ${ev.desc.replace(/"/g,'&quot;')} complete" ${isDone?'checked':''}>` : '—';
+        const status = isGraded ? (isDone ? 'Completed' : (days < 0 ? 'Past' : 'Pending')) : 'No Class';
+        tr.innerHTML = `
+          <td>${checkbox}</td>
+          <td>${ev.date}</td>
+          <td>${dayName(ev.date)}</td>
+          <td><span class="badge ${categories[ev.category].class}">${ev.type}</span></td>
+          <td>${ev.desc}</td>
+          <td>${fmtDays(days)}</td>
+          <td>${status}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('input[type=checkbox]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          completed[cb.dataset.idx] = cb.checked;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
+          renderAll();
+        });
+      });
+    }
+
+    function renderSummary(){
+      const isGraded = ev => ev.category !== 'noclass';
+      const total = events.filter(isGraded).length;
+      const doneCount = events.filter((ev,idx) => isGraded(ev) && completed[idx]).length;
+      const remaining = total - doneCount;
+      const overdue = events.filter((ev,idx) => isGraded(ev) && !completed[idx] && daysUntil(ev.date) < 0).length;
+      const upcoming = events.filter((ev,idx) => isGraded(ev) && !completed[idx] && daysUntil(ev.date) >= 0 && daysUntil(ev.date) <= 7).length;
+      const next = events
+        .map((ev,idx)=>({...ev,idx,days:daysUntil(ev.date)}))
+        .filter(x => isGraded(x) && !completed[x.idx] && x.days >= 0)
+        .sort((a,b)=>a.days - b.days)[0];
+
+      document.getElementById('summary').innerHTML = `
+        <div class="card"><div class="value">${total}</div><div class="label">Total Assignments</div></div>
+        <div class="card"><div class="value">${doneCount}</div><div class="label">Completed</div></div>
+        <div class="card"><div class="value">${remaining}</div><div class="label">Remaining</div></div>
+        <div class="card"><div class="value">${overdue}</div><div class="label">Overdue</div></div>
+        <div class="card"><div class="value">${upcoming}</div><div class="label">Due within 7 days</div></div>
+        <div class="card"><div class="value">${next ? next.days : '—'}</div><div class="label">Days until next item</div></div>
+      `;
+
+      const pct = total ? Math.round((doneCount/total)*100) : 0;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressBar').setAttribute('aria-valuenow', pct);
+      document.getElementById('progressText').textContent = `${doneCount} of ${total} assignments completed (${pct}%)`;
+    }
+
+    function renderFilters(){
+      const wrap = document.getElementById('filters');
+      wrap.innerHTML = '';
+      const opts = [['all','All'], ['outline','Outline Work'], ['speech','Speeches'], ['exam','Exams'], ['noclass','No Class'], ['important','Important']];
+      opts.forEach(([key,label])=>{
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.className = key === activeFilter ? 'active' : '';
+        btn.addEventListener('click',()=>{ activeFilter=key; renderAll(); });
+        wrap.appendChild(btn);
+      });
+    }
+
+    function renderCalendar(){
+      const months = [{name:'October 2026', m:9}, {name:'November 2026', m:10}, {name:'December 2026', m:11}];
+      const wrap = document.getElementById('calendar');
+      wrap.innerHTML = '';
+      const dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+      months.forEach(({name,m})=>{
+        const first = new Date(2026,m,1);
+        const daysInMonth = new Date(2026,m+1,0).getDate();
+        const startDay = first.getDay();
+        const monthDiv = document.createElement('div');
+        monthDiv.className = 'month';
+        let html = `<div class="month-name">${name}</div><div class="cal-grid">`;
+        dayLabels.forEach(dl => html += `<div class="cal-day-h">${dl}</div>`);
+        for (let i=0;i<startDay;i++) html += `<div class="cal-cell empty"></div>`;
+        for (let day=1; day<=daysInMonth; day++){
+          const dateStr = `2026-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+          const dayEvents = events.filter(e => e.date === dateStr);
+          html += `<div class="cal-cell"><div class="cal-date">${day}</div>`;
+          dayEvents.forEach(ev => {
+            html += `<div class="cal-event ${categories[ev.category].class}">${ev.type}: ${ev.desc}</div>`;
+          });
+          html += `</div>`;
+        }
+        html += `</div>`;
+        monthDiv.innerHTML = html;
+        wrap.appendChild(monthDiv);
+      });
+    }
+
+    function downloadCSV(){
+      const rows = [['Week','Date','Day','Type','Description','Days Remaining','Status']];
+      let lastWeek = null;
+      events.forEach((ev, idx) => {
+        const d = parseLocal(ev.date);
+        const weekStart = new Date(d); weekStart.setDate(d.getDate() - d.getDay());
+        const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+        const weekLabel = (lastWeek && weekStart.getTime() === lastWeek.getTime()) ? '' : `${weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})} - ${weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+        lastWeek = weekStart;
+        const days = daysUntil(ev.date);
+        const isGraded = ev.category !== 'noclass';
+        const isDone = !!completed[idx];
+        const status = isGraded ? (isDone ? 'Completed' : (days < 0 ? 'Past' : 'Pending')) : 'No Class';
+        const daysText = isGraded ? (days < 0 ? `Overdue ${Math.abs(days)}` : `${days}`) : '';
+        rows.push([weekLabel, ev.date, dayName(ev.date), ev.type, ev.desc, daysText, status]);
+      });
+      const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'COMM1315_Schedule.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    async function copyShareLink(){
+      const url = location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('Shareable link copied to clipboard. Paste it anywhere — progress is embedded.');
+      } catch(e){
+        prompt('Copy this shareable link:', url);
+      }
+    }
+
+    function downloadShareableFile(){
+      let source = document.documentElement.outerHTML;
+      const state = JSON.stringify(completed);
+      source = source.replace(/let completed = loadHashState\(\) \|\| \{\};/, `let completed = ${state};`);
+      const blob = new Blob([source], {type:'text/html'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'COMM1315_Shared.html';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function exportProgress(){
+      const data = JSON.stringify(completed);
+      const blob = new Blob([data], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'COMM1315_progress.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function importProgress(input){
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (typeof data === 'object') {
+            completed = data;
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(completed)); } catch(err){}
+            renderAll();
+          }
+        } catch(err) { alert('Invalid progress file.'); }
+      };
+      reader.readAsText(file);
+      input.value = '';
+    }
+
+    function resetProgress(){
+      if (confirm('Reset all progress?')){
+        completed = {};
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(completed)); } catch(err){}
+        renderAll();
+      }
+    }
+
+    function renderAll(){
+      renderSummary();
+      renderFilters();
+      renderTable();
+      renderCalendar();
+      saveCompleted();
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
